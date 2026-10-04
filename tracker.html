@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Мой трекер</title>
+<style>
+:root {
+  --bg: #08090f;
+  --bg2: #0f1119;
+  --card: #141824;
+  --card2: #1c2233;
+  --card3: #242b40;
+  --accent: #5b8def;
+  --accent2: #8b5cf6;
+  --accent3: #00d4aa;
+  --text: #eef2fa;
+  --muted: #7d87a3;
+  --border: #232b42;
+  --border2: #2e3754;
+  --success: #00d4aa;
+  --warning: #ffb84d;
+  --danger: #ff5c7c;
+  --work: #ff5c7c;
+  --off: #00d4aa;
+  --radius: 18px;
+  --radius-sm: 13px;
+  --nav-height: 70px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior-y: none; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh;
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0) + 20px);
+  line-height: 1.5; -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 15% 0%, rgba(91,141,239,0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 85% 20%, rgba(139,92,246,0.12), transparent),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0,212,170,0.08), transparent);
+  z-index: -1; pointer-events: none;
+}
+.container { max-width: 640px; margin: 0 auto; padding: 16px; }
+
+.header { padding: 12px 0 8px; }
+.header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+.header-title { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; }
+.header-title span { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.header-date { font-size: 0.7rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.time-card {
+  background: linear-gradient(135deg, var(--card), var(--card2));
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+.time-card::before {
+  content: ''; position: absolute; top: -50%; right: -20%;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(91,141,239,0.15), transparent 70%);
+  border-radius: 50%;
+}
+.time-city { font-size: 0.7rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.time-value { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--text); margin-top: 2px; }
+.time-day { text-align: right; z-index: 1; }
+.time-day-label { font-size: 0.65rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.time-day-value { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin-top: 2px; }
+
+.timer-card {
+  background: linear-gradient(135deg, rgba(91,141,239,0.15), rgba(139,92,246,0.1));
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.timer-card::after {
+  content: '⏳'; position: absolute; right: 14px; top: 50%;
+  transform: translateY(-50%); font-size: 3rem; opacity: 0.08;
+}
+.timer-label { font-size: 0.68rem; color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+.timer-value { font-size: 2.4rem; font-weight: 900; letter-spacing: -0.04em; color: var(--text); line-height: 1; margin: 6px 0; }
+.timer-value small { font-size: 1rem; font-weight: 700; color: var(--muted); margin-left: 6px; }
+.timer-sub { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.timer-bar { height: 5px; background: var(--border); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.timer-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); width: 0; transition: width 0.5s; border-radius: 3px; }
+
+.quote-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px;
+  margin-bottom: 14px; position: relative;
+}
+.quote-text { font-size: 0.88rem; font-style: italic; line-height: 1.55; color: var(--text); }
+.quote-author { font-size: 0.68rem; color: var(--muted); margin-top: 8px; font-weight: 700; text-align: right; }
+
+.day-badge {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 14px;
+  font-weight: 800; font-size: 0.85rem; border: 1.5px solid;
+}
+.day-badge.work { background: rgba(255,92,124,0.08); border-color: var(--work); color: var(--work); }
+.day-badge.off { background: rgba(0,212,170,0.08); border-color: var(--off); color: var(--off); }
+.day-badge .db-sub { font-size: 0.7rem; font-weight: 600; opacity: 0.75; margin-left: auto; }
+
+.page { display: none; animation: fade 0.3s ease; }
+.page.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.nav-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height);
+  background: rgba(15,17,25,0.92); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom, 0); z-index: 100;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 8px 4px; border: none; background: none;
+  color: var(--muted); font-size: 0.6rem; font-weight: 700;
+  font-family: inherit; cursor: pointer; transition: 0.2s;
+}
+.nav-item .nav-icon { font-size: 1.3rem; transition: 0.2s; }
+.nav-item.active { color: var(--accent); }
+.nav-item.active .nav-icon { transform: scale(1.15) translateY(-2px); }
+
+.section-header { display: flex; justify-content: space-between; align-items: center; margin: 18px 0 10px; padding: 0 4px; }
+.section-header h2 { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em; }
+.section-badge { font-size: 0.68rem; color: var(--muted); background: var(--card); padding: 4px 10px; border-radius: 10px; font-weight: 800; border: 1px solid var(--border); }
+
+.time-block { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; transition: 0.2s; }
+.time-block.done { border-color: rgba(0,212,170,0.4); }
+.time-block.work-block { border-left: 3px solid var(--work); }
+.time-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
+.time-header:active { background: var(--card2); }
+.time-badge { font-size: 0.72rem; font-weight: 800; color: var(--accent); background: rgba(91,141,239,0.12); padding: 4px 10px; border-radius: 8px; min-width: 50px; text-align: center; letter-spacing: -0.01em; }
+.time-emoji { font-size: 1.05rem; }
+.time-title { flex: 1; font-size: 0.85rem; font-weight: 700; }
+.time-progress { font-size: 0.65rem; color: var(--muted); background: var(--bg2); padding: 3px 8px; border-radius: 8px; font-weight: 800; }
+.time-progress.done { color: var(--success); background: rgba(0,212,170,0.12); }
+.time-arrow { color: var(--muted); font-size: 0.65rem; transition: 0.25s; }
+.time-block.expanded .time-arrow { transform: rotate(90deg); }
+.time-tasks { display: none; padding: 0; }
+.time-block.expanded .time-tasks { display: block; }
+
+.task-item { display: flex; align-items: flex-start; gap: 10px; padding: 11px 14px; cursor: pointer; border-top: 1px solid var(--border); transition: 0.15s; }
+.task-item:active { background: var(--card2); }
+.task-item.done .task-text { text-decoration: line-through; color: var(--muted); }
+.task-check { width: 20px; height: 20px; border: 2px solid var(--border2); border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: var(--bg2); margin-top: 1px; }
+.task-item.done .task-check { background: var(--accent); border-color: var(--accent); animation: pop 0.3s; }
+.task-item.done .task-check::after { content: '✓'; color: white; font-size: 0.7rem; font-weight: 900; }
+@keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+.task-text { flex: 1; font-size: 0.83rem; line-height: 1.45; }
+.task-text small { display: block; color: var(--muted); font-size: 0.68rem; margin-top: 2px; font-weight: 500; }
+.task-text .lesson-name { color: var(--accent); font-weight: 700; }
+
+.tab-bar { display: flex; gap: 4px; background: var(--card); padding: 4px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 14px; }
+.tab-btn { flex: 1; padding: 9px; border: none; background: none; color: var(--muted); border-radius: 10px; font-family: inherit; font-size: 0.8rem; font-weight: 800; cursor: pointer; transition: 0.2s; }
+.tab-btn.active { background: var(--accent); color: white; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fade 0.25s; }
+
+.course-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+.course-header { display: flex; align-items: center; gap: 11px; padding: 14px; cursor: pointer; }
+.course-header:active { background: var(--card2); }
+.course-num { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.82rem; color: white; flex-shrink: 0; }
+.course-info { flex: 1; min-width: 0; }
+.course-title { font-size: 0.87rem; font-weight: 800; }
+.course-sub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; font-weight: 600; }
+.course-pct { font-size: 0.75rem; font-weight: 800; color: var(--accent); }
+.course-bar { height: 3px; background: var(--bg2); overflow: hidden; }
+.course-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent3)); width: 0; transition: 0.4s; }
+.course-lessons { display: none; padding: 4px 0; border-top: 1px solid var(--border); }
+.course-card.expanded .course-lessons { display: block; }
+.lesson-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; transition: 0.15s; }
+.lesson-item:active { background: var(--card2); }
+.lesson-item.done .lesson-text { text-decoration: line-through; color: var(--muted); opacity: 0.7; }
+.lesson-check { width: 18px; height: 18px; border: 2px solid var(--border2); border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg2); transition: 0.2s; }
+.lesson-item.done .lesson-check { background: var(--success); border-color: var(--success); }
+.lesson-item.done .lesson-check::after { content: '✓'; color: white; font-size: 0.65rem; font-weight: 900; }
+.lesson-text { flex: 1; font-size: 0.8rem; }
+.lesson-item.current { background: rgba(91,141,239,0.08); border-left: 3px solid var(--accent); padding-left: 11px; }
+.lesson-item.current .lesson-text { color: var(--accent); font-weight: 700; }
+
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 0.68rem; color: var(--muted); margin-bottom: 5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+.form-group input, .form-group select { width: 100%; padding: 12px 14px; background: var(--bg2); border: 1px solid var(--border2); color: var(--text); border-radius: 12px; font-size: 0.88rem; font-family: inherit; transition: 0.2s; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn { width: 100%; padding: 13px; border: none; border-radius: 14px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-size: 0.88rem; font-weight: 800; font-family: inherit; cursor: pointer; transition: 0.2s; letter-spacing: 0.01em; }
+.btn:active { transform: scale(0.98); }
+.btn-secondary { background: var(--card); border: 1px solid var(--border2); color: var(--text); }
+
+.card-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.card-box h3 { font-size: 0.85rem; color: var(--accent); margin-bottom: 12px; font-weight: 800; }
+
+.measure-entry { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.measure-date { font-size: 0.68rem; color: var(--muted); font-weight: 800; letter-spacing: 0.03em; }
+.measure-vals { font-size: 0.76rem; margin-top: 4px; color: var(--text); }
+.measure-vals span { color: var(--accent); font-weight: 800; }
+.del-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--danger); width: 30px; height: 30px; border-radius: 10px; font-size: 0.85rem; cursor: pointer; font-weight: 700; }
+
+.week-preview { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
+.week-day { padding: 8px 2px; text-align: center; border-radius: 8px; font-size: 0.68rem; font-weight: 800; border: 1px solid var(--border); background: var(--bg2); }
+.week-day.work { background: rgba(255,92,124,0.12); border-color: var(--work); color: var(--work); }
+.week-day.off { background: rgba(0,212,170,0.12); border-color: var(--off); color: var(--off); }
+.week-day.today { outline: 2px solid var(--accent); outline-offset: 1px; }
+.week-day small { display: block; font-size: 0.58rem; opacity: 0.7; margin-top: 2px; }
+
+.toast { position: fixed; bottom: calc(var(--nav-height) + 20px); left: 50%; transform: translateX(-50%) translateY(120px); background: var(--accent); color: white; padding: 12px 22px; border-radius: 14px; font-size: 0.85rem; font-weight: 800; box-shadow: 0 10px 30px rgba(91,141,239,0.4); transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index: 200; pointer-events: none; max-width: 90%; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.confetti { position: fixed; width: 8px; height: 8px; pointer-events: none; z-index: 9999; animation: fall 2s linear forwards; }
+@keyframes fall { 0% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+.empty { text-align: center; padding: 30px 20px; color: var(--muted); font-size: 0.82rem; }
+.empty-icon { font-size: 2rem; display: block; margin-bottom: 8px; opacity: 0.5; }
+
+.counter-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+.counter-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
+.counter-value { font-size: 1.8rem; font-weight: 900; color: var(--accent); line-height: 1; letter-spacing: -0.03em; }
+.counter-value small { font-size: 0.9rem; font-weight: 700; color: var(--muted); }
+.counter-label { font-size: 0.68rem; color: var(--muted); margin-top: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+.counter-btns { display: flex; gap: 6px; margin-top: 10px; justify-content: center; }
+.counter-btn { padding: 6px 14px; border-radius: 10px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; font-size: 0.85rem; font-weight: 800; cursor: pointer; }
+.counter-btn:active { background: var(--card2); }
+
+canvas { width: 100%; height: auto; display: block; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="header-title">Мой <span>трекер</span></div>
+        <div class="header-date" id="dateDisplay"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ HOME ============ -->
+  <div class="page active" id="page-home">
+
+    <div class="time-card">
+      <div>
+        <div class="time-city">Челябинск</div>
+        <div class="time-value" id="clockTime">--:--:--</div>
+      </div>
+      <div class="time-day">
+        <div class="time-day-label">Сегодня</div>
+        <div class="time-day-value" id="dayType">...</div>
+      </div>
+    </div>
+
+    <div class="timer-card">
+      <div class="timer-label">⏳ Поиск работы</div>
+      <div class="timer-value" id="timerDays">365<small>дней</small></div>
+      <div class="timer-sub" id="timerSub">до 5 октября 2027</div>
+      <div class="timer-bar"><div class="timer-bar-fill" id="timerBar"></div></div>
+    </div>
+
+    <div class="day-badge" id="dayBadge">
+      <span id="dayBadgeIcon">📅</span>
+      <span id="dayBadgeText">Загрузка...</span>
+      <span class="db-sub" id="dayBadgeSub"></span>
+    </div>
+
+    <div class="quote-card">
+      <div class="quote-text" id="quoteText"></div>
+      <div class="quote-author" id="quoteAuthor"></div>
+    </div>
+
+    <div class="section-header">
+      <h2 id="scheduleTitle">📅 Расписание</h2>
+      <span class="section-badge" id="dayProgress">0%</span>
+    </div>
+    <div id="scheduleContainer"></div>
+  </div>
+
+  <!-- ============ LESSONS ============ -->
+  <div class="page" id="page-lessons">
+    <div class="section-header">
+      <h2>📚 The Odin Project</h2>
+      <span class="section-badge" id="odinProgress">0%</span>
+    </div>
+    <div id="coursesContainer"></div>
+  </div>
+
+  <!-- ============ ENGLISH ============ -->
+  <div class="page" id="page-english">
+    <div class="section-header">
+      <h2>🇬🇧 Английский сегодня</h2>
+      <span class="section-badge" id="engToday">0/4</span>
+    </div>
+
+    <div class="counter-row">
+      <div class="counter-card">
+        <div class="counter-value"><span id="airlernCount">0</span><small>/5</small></div>
+        <div class="counter-label">Airlern уроков</div>
+        <div class="counter-btns">
+          <button class="counter-btn" onclick="changeAirlern(-1)">−</button>
+          <button class="counter-btn" onclick="changeAirlern(1)">+</button>
+        </div>
+      </div>
+      <div class="counter-card">
+        <div class="counter-value"><span id="ankiCount">0</span><small>/20</small></div>
+        <div class="counter-label">Anki слов</div>
+        <div class="counter-btns">
+          <button class="counter-btn" onclick="changeAnki(-5)">−5</button>
+          <button class="counter-btn" onclick="changeAnki(5)">+5</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="englishContainer"></div>
+  </div>
+
+  <!-- ============ PROFILE ============ -->
+  <div class="page" id="page-profile">
+    <div class="section-header"><h2>👤 Профиль</h2></div>
+
+    <div class="card-box">
+      <h3>📏 Замеры тела</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Грудь</label><input type="number" id="mChest" placeholder="см" step="0.5"></div>
+        <div class="form-group"><label>Талия</label><input type="number" id="mWaist" placeholder="см" step="0.5"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Бёдра</label><input type="number" id="mHips" placeholder="см" step="0.5"></div>
+        <div class="form-group"><label>Вес</label><input type="number" id="mWeight" placeholder="кг" step="0.1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Бицепс</label><input type="number" id="mBicep" placeholder="см" step="0.5"></div>
+        <div class="form-group"><label>Плечи</label><input type="number" id="mShoulders" placeholder="см" step="0.5"></div>
+      </div>
+      <button class="btn" onclick="addMeasure()">+ Добавить замер</button>
+    </div>
+
+    <div class="card-box">
+      <h3>📊 График веса</h3>
+      <canvas id="chartWeight" width="500" height="180"></canvas>
+    </div>
+
+    <div class="card-box">
+      <h3>📊 Талия / Бёдра</h3>
+      <canvas id="chartTW" width="500" height="180"></canvas>
+    </div>
+
+    <div id="measuresList"></div>
+
+    <div class="card-box">
+      <h3>🗓️ График работы 2/2</h3>
+      <div class="form-group"><label>Первый рабочий день</label><input type="date" id="workAnchor"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Рабочих</label><input type="number" id="workDays" value="2" min="1" max="7"></div>
+        <div class="form-group"><label>Выходных</label><input type="number" id="offDays" value="2" min="1" max="7"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Начало работы</label><input type="time" id="workStart" value="15:00"></div>
+        <div class="form-group"><label>Конец работы</label><input type="time" id="workEnd" value="21:00"></div>
+      </div>
+      <button class="btn" onclick="saveWorkConfig()">💾 Сохранить</button>
+      <div style="margin-top:12px;">
+        <div style="font-size:0.7rem;color:var(--muted);font-weight:800;margin-bottom:6px;letter-spacing:0.05em;">БЛИЖАЙШИЕ 14 ДНЕЙ:</div>
+        <div class="week-preview" id="weekPreview"></div>
+      </div>
+    </div>
+
+    <div class="card-box">
+      <h3>🎯 Цели</h3>
+      <div class="form-group"><label>Уроков Odin в день</label><input type="number" id="goalLessons" value="1"></div>
+      <div class="form-group"><label>Слов Anki в день</label><input type="number" id="goalAnki" value="20"></div>
+      <button class="btn" onclick="saveGoals()">Сохранить цели</button>
+    </div>
+
+    <div class="card-box">
+      <h3>💾 Данные</h3>
+      <button class="btn" onclick="exportData()">📤 Экспорт JSON</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 Импорт JSON</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <div style="height:8px"></div>
+      <button class="btn btn-secondary" onclick="resetToday()">🔄 Сбросить день</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="resetAll()">⚠️ Сбросить всё</button>
+    </div>
+
+    <div style="text-align:center;color:var(--muted);font-size:0.68rem;padding:20px;">
+      Трекер v2.1 · Данные в localStorage
+    </div>
+  </div>
+
+</div>
+
+<nav class="nav-bar">
+  <button class="nav-item active" data-page="home" onclick="goTo('home')"><span class="nav-icon">🏠</span><span>Главная</span></button>
+  <button class="nav-item" data-page="lessons" onclick="goTo('lessons')"><span class="nav-icon">📚</span><span>Уроки</span></button>
+  <button class="nav-item" data-page="english" onclick="goTo('english')"><span class="nav-icon">🇬🇧</span><span>English</span></button>
+  <button class="nav-item" data-page="profile" onclick="goTo('profile')"><span class="nav-icon">👤</span><span>Профиль</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   КОНСТАНТЫ
+   ============================================================ */
+const START_DATE = '2026-10-05';
+const DEADLINE_DATE = '2027-10-05';
+
+/* ============================================================
+   ЛОКАЛЬНАЯ ДАТА (Челябинск, UTC+5)
+   ============================================================ */
+const TZ = 'Asia/Yekaterinburg';
+
+function getLocalDate(date = new Date()) {
+  // Возвращает объект Date, соответствующий локальному времени Челябинска
+  return new Date(date.toLocaleString('en-US', { timeZone: TZ }));
+}
+
+function getLocalDateKey(date = new Date()) {
+  const d = getLocalDate(date);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
+/* ============================================================
+   ГРАФИК РАБОТЫ 2/2
+   ============================================================ */
+const DEFAULT_WORK = {
+  anchorDate: '2026-10-07',   // первый рабочий день
+  workDays: 2,
+  offDays: 2,
+  workStart: '15:00',
+  workEnd: '21:00'
+};
+const K_WORK = 'tr_work_v3';
+
+function load(k, def) { try { const v = JSON.parse(localStorage.getItem(k)); return v === null ? def : v; } catch { return def; } }
+function save(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+
+let workConfig = load(K_WORK, DEFAULT_WORK);
+
+function isWorkDay(date = new Date()) {
+  const anchor = new Date(workConfig.anchorDate + 'T00:00:00');
+  const d = getLocalDate(date);
+  const dOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diff = Math.round((dOnly - anchor) / 86400000);
+  const cycle = workConfig.workDays + workConfig.offDays;
+  const pos = ((diff % cycle) + cycle) % cycle;
+  return pos < workConfig.workDays;
+}
+
+/* ============================================================
+   РАСПИСАНИЯ
+   ============================================================ */
+const WORK_SCHEDULE = [
+  { time: "07:30", emoji: "🌅", title: "Подъём", tasks: [
+    { id: "w1", text: "Встать с кровати, открыть шторы" },
+    { id: "w2", text: "Стакан воды", sub: "300–400 мл" },
+    { id: "w3", text: "Умыться, тоник, крем, SPF" }
+  ]},
+  { time: "08:00", emoji: "🏋️", title: "Утренняя зарядка", tasks: [
+    { id: "w4", text: "Суставная разминка: шея, плечи, кисти, таз, колени", sub: "5 минут, медленно" },
+    { id: "w5", text: "Отжимания от пола или с колен", sub: "3 подхода × 12–15" },
+    { id: "w6", text: "Приседания с собственным весом", sub: "3 подхода × 20" },
+    { id: "w7", text: "Планка на локтях", sub: "3 подхода × 45 сек" },
+    { id: "w8", text: "Растяжка спины, ног, плеч", sub: "5 минут" }
+  ]},
+  { time: "08:40", emoji: "🍳", title: "Завтрак", tasks: [
+    { id: "w9", text: "Приготовить завтрак с белком", sub: "яйца / творог / овсянка" }
+  ]},
+  { time: "09:00", emoji: "💻", title: "Программирование", tasks: [
+    { id: "w10", text: "Пройти следующий урок", sub: "Смотри название ниже" },
+    { id: "w11", text: "Codewars — 1 задача 8kyu", sub: "Разминка для мозга" }
+  ]},
+  { time: "11:00", emoji: "🇬🇧", title: "Английский", tasks: [
+    { id: "w12", text: "Airlern — до 5 уроков", sub: "Лимит приложения" },
+    { id: "w13", text: "Anki — 15 новых слов + повторение" },
+    { id: "w14", text: "Speaking — 5 минут вслух", sub: "Опиши свой день на английском" }
+  ]},
+  { time: "12:00", emoji: "🍽️", title: "Обед", tasks: [
+    { id: "w15", text: "Приготовить обед с белком" }
+  ]},
+  { time: "13:00", emoji: "💻", title: "Программирование", tasks: [
+    { id: "w16", text: "Практика по текущей теме", sub: "Пиши код руками, не копируй" },
+    { id: "w17", text: "Разбор ошибок и вопросов" }
+  ]},
+  { time: "14:30", emoji: "🎒", title: "Сборы на работу", tasks: [
+    { id: "w18", text: "Переодеться, взять еду с собой" }
+  ]},
+  { time: "15:00", emoji: "💼", title: "Работа", workBlock: true, tasks: [
+    { id: "w19", text: "Работать до 21:00" }
+  ]},
+  { time: "21:30", emoji: "🍽️", title: "Ужин", tasks: [
+    { id: "w20", text: "Приготовить лёгкий ужин" }
+  ]},
+  { time: "22:00", emoji: "🌙", title: "Вечер", tasks: [
+    { id: "w21", text: "Anki — повторение за день" },
+    { id: "w22", text: "Дневник: что сделал, что понял" }
+  ]},
+  { time: "22:30", emoji: "😴", title: "Сон", tasks: [
+    { id: "w23", text: "Убрать телефон, подготовить одежду" },
+    { id: "w24", text: "В кровать до 23:00" }
+  ]}
+];
+
+const OFF_SCHEDULE = [
+  { time: "08:00", emoji: "🌅", title: "Подъём", tasks: [
+    { id: "o1", text: "Встать, открыть шторы" },
+    { id: "o2", text: "Стакан воды", sub: "300–400 мл" },
+    { id: "o3", text: "Умыться, тоник, крем, SPF" }
+  ]},
+  { time: "08:30", emoji: "🏋️", title: "Силовая тренировка", tasks: [
+    { id: "o4", text: "Разминка: суставная + лёгкое кардио", sub: "5 минут" },
+    { id: "o5", text: "Фаза 1: Ретракция лопаток", sub: "3 подхода × 15 (щадяще для плеча)" },
+    { id: "o6", text: "Фаза 1: Подъёмы I / Y / T / W лёжа", sub: "3 подхода каждого" },
+    { id: "o7", text: "Фаза 1: Изометрическое вращение с резинкой", sub: "3 подхода × 15" },
+    { id: "o8", text: "Отжимания от пола", sub: "4 подхода × 12 (следи за плечом!)" },
+    { id: "o9", text: "Приседания", sub: "4 подхода × 20" },
+    { id: "o10", text: "Выпады назад", sub: "3 подхода × 12 на каждую ногу" },
+    { id: "o11", text: "Планка", sub: "3 подхода × 60 сек" },
+    { id: "o12", text: "Растяжка всего тела", sub: "10 минут" }
+  ]},
+  { time: "09:30", emoji: "🍳", title: "Завтрак", tasks: [
+    { id: "o13", text: "Приготовить сытный завтрак", sub: "~600 ккал, 30 г белка" }
+  ]},
+  { time: "10:00", emoji: "💻", title: "Программирование (блок 1)", tasks: [
+    { id: "o14", text: "Пройти 1 урок Odin", sub: "Смотри название ниже" },
+    { id: "o15", text: "Codewars — 1 задача", sub: "Уровень по силам" }
+  ]},
+  { time: "12:00", emoji: "🇬🇧", title: "Английский", tasks: [
+    { id: "o16", text: "Airlern — до 5 уроков", sub: "Лимит приложения" },
+    { id: "o17", text: "Anki — 20 новых слов + повторение" },
+    { id: "o18", text: "Speaking — 10 минут вслух", sub: "Говори, не стесняйся ошибок" },
+    { id: "o19", text: "Listening — 1 видео на английском", sub: "YouTube с субтитрами" }
+  ]},
+  { time: "13:00", emoji: "🍽️", title: "Обед", tasks: [
+    { id: "o20", text: "Приготовить обед" }
+  ]},
+  { time: "14:00", emoji: "💻", title: "Программирование (блок 2)", tasks: [
+    { id: "o21", text: "Практика: пиши код руками", sub: "Без копипаста" },
+    { id: "o22", text: "Работа над текущим проектом", sub: "Разбей на подзадачи" }
+  ]},
+  { time: "16:00", emoji: "💻", title: "Программирование (блок 3)", tasks: [
+    { id: "o23", text: "Пройти ещё 1 урок (если есть силы)" },
+    { id: "o24", text: "Git commit с понятным сообщением" }
+  ]},
+  { time: "18:00", emoji: "🥗", title: "Перекус", tasks: [
+    { id: "o25", text: "Белок + сложные углеводы", sub: "творог / орехи / фрукт" }
+  ]},
+  { time: "19:00", emoji: "🍽️", title: "Ужин", tasks: [
+    { id: "o26", text: "Приготовить ужин с белком" }
+  ]},
+  { time: "20:00", emoji: "📖", title: "Развитие", tasks: [
+    { id: "o27", text: "Чтение 20 страниц", sub: "Книга по программированию или общая" },
+    { id: "o28", text: "Разбор сложных тем дня" }
+  ]},
+  { time: "21:30", emoji: "🌙", title: "Вечер", tasks: [
+    { id: "o29", text: "Anki — повторение" },
+    { id: "o30", text: "Дневник: что сделал, что понял" }
+  ]},
+  { time: "22:30", emoji: "😴", title: "Сон", tasks: [
+    { id: "o31", text: "Убрать телефон" },
+    { id: "o32", text: "В кровать до 23:00" }
+  ]}
+];
+
+function getTodaySchedule() {
+  return isWorkDay() ? WORK_SCHEDULE : OFF_SCHEDULE;
+}
+
+/* ============================================================
+   ЦИТАТЫ
+   ============================================================ */
+const QUOTES = [
+  { t: "Дисциплина — это выбор между тем, что ты хочешь сейчас, и тем, что хочешь больше всего.", a: "Автор неизвестен" },
+  { t: "Не жди мотивации. Создай привычку.", a: "Джим Рон" },
+  { t: "Каждый день — это шанс стать на 1% лучше.", a: "Джеймс Клир" },
+  { t: "Ты не обязан быть великим, чтобы начать. Но нужно начать, чтобы стать великим.", a: "Зиг Зиглар" },
+  { t: "Успех — это сумма маленьких усилий, повторяемых изо дня в день.", a: "Роберт Кольер" },
+  { t: "Сложно — не значит невозможно. Сложно — значит стоит того.", a: "Автор неизвестен" },
+  { t: "Код не пишется сам. Английский не учится сам. Всё решает действие.", a: "Автор неизвестен" },
+  { t: "Пока ты думаешь, что не готов — другие уже начали.", a: "Автор неизвестен" },
+  { t: "Твоё будущее создаётся тем, что ты делаешь сегодня.", a: "Автор неизвестен" },
+  { t: "Ошибки — это доказательство, что ты пытаешься.", a: "Автор неизвестен" },
+  { t: "Программирование — это не про талант. Это про упорство.", a: "Автор неизвестен" },
+  { t: "Английский — это ключ к 90% информации в мире.", a: "Автор неизвестен" },
+  { t: "Разбей цель на шаги. И делай первый.", a: "Автор неизвестен" },
+  { t: "Сравнивай себя не с другими, а с собой вчерашним.", a: "Автор неизвестен" },
+  { t: "Ты справишься. Просто продолжай.", a: "Автор неизвестен" }
+];
+
+/* ============================================================
+   АНГЛИЙСКИЙ
+   ============================================================ */
+const ENGLISH_TASKS = [
+  { id: "e1", text: "Airlern", sub: "До 5 уроков в день" },
+  { id: "e2", text: "Anki", sub: "Новые слова + повторение" },
+  { id: "e3", text: "Speaking", sub: "Вслух 5–10 минут" },
+  { id: "e4", text: "Listening", sub: "1 видео / подкаст" }
+];
+
+/* ============================================================
+   КУРСЫ ODIN PROJECT
+   ============================================================ */
+const COURSES = [
+  {
+    id: "c1",
+    title: "Основы",
+    desc: "Практическое введение во все инструменты для создания реальных сайтов",
+    lessons: [
+      // Знакомство
+      "Как будет работать этот курс",
+      "Введение в веб-разработку",
+      "Мотивация и мышление",
+      "Просить о помощи",
+      "Присоединяйтесь к сообществу Odin",
+      // Предпосылка
+      "Как работает Интернет?",
+      "Установки",
+      // Инструменты
+      "Текстовые редакторы",
+      "Основы командной строки",
+      "Настройка Git",
+      // Основы Git
+      "Введение в Git",
+      "Основы Git",
+      // Основы HTML
+      "Введение в HTML и CSS",
+      "Элементы и теги",
+      "HTML-бокер",
+      "Работа с текстом",
+      "Списки",
+      "Ссылки и изображения",
+      "Сообщения с аксеми",
+      "Проект: Рецепты",
+      // Основы CSS
+      "Введение в CSS",
+      "Каскад",
+      "Проверка HTML и CSS",
+      "Модель коробки",
+      "Блок и встрой",
+      // Гибкий ящик
+      "Введение в Flexbox",
+      "Рост и усадка",
+      "Топоры",
+      "Выравнивание",
+      "Проект: Целевая страница",
+      // Основы JavaScript
+      "Переменные и операторы",
+      "Установка Node.js",
+      "Типы данных и условия",
+      "Инструменты разработчика JavaScript",
+      "Основы Функций",
+      "Решение проблем",
+      "Понимание ошибок",
+      "Проект: Ножницы для бумаги",
+      "Чистый код",
+      "Петли и массивы",
+      "Манипуляции и события DOM",
+      "Пересмотр Каменных Бумажных Ножниц",
+      "Проект: Etch-a-Sketch",
+      // Основы Объекта
+      "Основы Объекта",
+      "Проект: Калькулятор",
+      // Вывод
+      "Выберите Свой Путь Вперед"
+    ]
+  },
+  {
+    id: "c2",
+    title: "Промежуточный HTML и CSS",
+    desc: "20 уроков · 2 проекта",
+    lessons: [
+      "СВГ",
+      "Таблицы",
+      "Стили по умолчанию",
+      "Единицы CSS",
+      "Больше стилей текста",
+      "Больше свойств CSS",
+      "Расширенные селекторы",
+      "Позиционирование",
+      "Функции CSS",
+      "Пользовательские свойства",
+      "Совместимость браузера",
+      "Фреймворки и препроцессоры",
+      "Основы формы",
+      "Проверка формы",
+      "Проект: Форма Регистрации",
+      "Введение в сетку",
+      "Создание сетки",
+      "Позиционирование элементов сетки",
+      "Расширенные свойства сетки",
+      "Использование Flexbox и Grid",
+      "Проект: Панель управления администратора"
+    ]
+  },
+  {
+    id: "c3",
+    title: "JavaScript",
+    desc: "29 уроков · 12 проектов",
+    lessons: [
+      "Организация кода с объектами",
+      "Конструкторы объектов",
+      "Проект: Библиотека",
+      "Заводские функции и шаблон модуля",
+      "Проект: Кетики-нолики",
+      "Классы",
+      "Модули ES6",
+      "npm",
+      "Веб-пакет",
+      "Проект: Страница ресторана",
+      "Пересмотр Webpack",
+      "ДЖСОН",
+      "Принципы ООП",
+      "Проект: Список дел",
+      "Линтинг",
+      "Проверка формы с помощью JavaScript",
+      "ECMAScript",
+      "Асинхронный код",
+      "Работа с API",
+      "Асинхрониция и ожидание",
+      "Проект: Приложение Weather",
+      "Основы тестирования",
+      "Проект: Практика тестирования",
+      "Больше тестов",
+      "Очень краткое введение в CS",
+      "Рекурсивные методы",
+      "Проект: Рекурсия",
+      "Временная сложность",
+      "Космическая сложность",
+      "Общие структуры данных и алгоритмы",
+      "Проект: Связанные списки",
+      "Структура данных HashMap",
+      "Проект: HashMap",
+      "Проект: Двоичные поисковые деревья",
+      "Проект: Рыцари-Траки",
+      "Более глубокий взгляд на Git",
+      "Работа с пультами дистанционного управления",
+      "Использование Git в реальном мире",
+      "Проект: Линкор"
+    ]
+  },
+  {
+    id: "c4",
+    title: "Расширенный HTML и CSS",
+    desc: "15 уроков · 1 проект",
+    lessons: [
+      "Трансформирует",
+      "Переходы",
+      "Ключевые кадры",
+      "Введение в веб-доступность",
+      "Руководство по доступности веб-контента (WCAG)",
+      "Семантический HTML",
+      "Доступные цвета",
+      "Клавиатура навигации",
+      "Содержательный Текст",
+      "ВАЙ-АРИЯ",
+      "Аудит доступности",
+      "Введение в адаптивный дизайн",
+      "Естественная отзывчивость",
+      "Адаптивные Изображения",
+      "Запросы СМИ",
+      "Проект: Главная страница"
+    ]
+  },
+  {
+    id: "c5",
+    title: "React",
+    desc: "22 урока · 3 проекта",
+    lessons: [
+      "Настройка Среды React",
+      "Компоненты React",
+      "Что Такое JSX?",
+      "Передача Данных Между Компонентами",
+      "Методы рендеринга",
+      "Ключи В Реакции",
+      "Введение В Государство",
+      "Подробнее О Государстве",
+      "Проект: Резюме Заявка",
+      "Как Справиться С Побочными Эффектами",
+      "Проект: Карта памяти",
+      "Компоненты на основе классов",
+      "Методы жизненного цикла компонентов",
+      "Введение В Тестирование React",
+      "Насмешки На Обратные Звонки И Компоненты",
+      "Реагировать Маршрутизатор",
+      "Извлечение Данных В React",
+      "Стилизация приложений React",
+      "Проект: Корзина для покупок",
+      "Управление Состоянием С Помощью Контекстного API",
+      "Сокращение состояния",
+      "Ссылки И Мемоализация"
+    ]
+  },
+  {
+    id: "c6",
+    title: "Базы данных",
+    desc: "2 урока · 1 проект",
+    lessons: [
+      "Базы данных",
+      "Базы данных и SQL",
+      "Проект: SQL Zoo"
+    ]
+  },
+  {
+    id: "c7",
+    title: "NodeJS",
+    desc: "21 урок · 9 проектов",
+    lessons: [
+      "Введение в бэкэнд",
+      "Введение: Что такое NodeJS?",
+      "Узел отладки",
+      "Проект: Основной информационный сайт",
+      "Переменные среды",
+      "Введение в рамки",
+      "Введение в Express",
+      "Маршруты",
+      "Контроллеры",
+      "Просмотры",
+      "Проект: Мини-доска объявлений",
+      "Развертывание",
+      "Формы и обработка данных",
+      "Установка PostgreSQL",
+      "Использование PostgreSQL",
+      "Проект: Применение Инвентаризации",
+      "Основы аутентификации",
+      "Проект: Только для участников",
+      "Призма ORM",
+      "Проект: Файловый загрузчик",
+      "Основы API",
+      "Безопасность API",
+      "Проект: Блог API",
+      "Тестирование маршрутов и контроллеров",
+      "Тестирование операций базы данных",
+      "Проект: Where's Waldo (приложение для фототегов)",
+      "Проект: Приложение Для Обмена Сообщениями",
+      "Проект: Odin-Book"
+    ]
+  },
+  {
+    id: "c8",
+    title: "Нанимать",
+    desc: "12 уроков · 2 проекта",
+    lessons: [
+      "Как Будет Работать Этот Курс",
+      "Профессиональное общение",
+      "Стратегия",
+      "Все начинается с ТЕБЯ",
+      "Чего Хотят Компании",
+      "Что вы можете сделать, чтобы подготовиться",
+      "Проект: Создание вашего личного сайта",
+      "Сбор потенциальных клиентов",
+      "Квалифицированные вакансии",
+      "Проект: Создание Вашего Резюме",
+      "Подача заявки на работу в области веб-разработки",
+      "Подготовка к собеседованию и собеседование",
+      "Обработка предложения о работе"
+    ]
+  },
+  {
+    id: "c9",
+    title: "Ruby (основы)",
+    desc: "Без дублей — информатика и Git уже изучены",
+    lessons: [
+      "Как Будет Работать Этот Курс",
+      "Установка Ruby",
+      "Основные типы данных",
+      "Переменные",
+      "Вход и выход",
+      "Условная логика",
+      "Петли",
+      "Массивы",
+      "Хэши",
+      "Способы",
+      "Отладка",
+      "Основные перечисляемые методы",
+      "Предикатные Перечисляемые Методы",
+      "Вложенные Коллекции",
+      "Проект: Caesar Cipher",
+      "Проект: Подстроки",
+      "Проект: Stock Picker",
+      "Проект: Bubble Sort",
+      "Объектно-ориентированное Программирование",
+      "Проджэкт менеджмент",
+      "Линтинг и РубоКоп",
+      "Проект: Кетики-нолики",
+      "Проект: Mastermind",
+      "Файлы и сериализация",
+      "Проект: Саалка",
+      "Соответствие шаблона",
+      "Блоки",
+      "Проект: Пользовательские перечисляемые",
+      "Тестовое развитие",
+      "Введение в RSpec",
+      "Проект: Connect Four",
+      "Проект: Шахматы"
+    ]
+  },
+  {
+    id: "c10",
+    title: "Ruby on Rails",
+    desc: "Финальный курс Ruby-пути",
+    lessons: [
+      "Как Будет Работать Этот Курс",
+      "Введение в бэкэнд",
+      "Введение в рамки",
+      "Проект: Установка рельсов",
+      "Установка PostgreSQL",
+      "Обновление Сети Railsy",
+      "Маршрутизация",
+      "Контроллеры",
+      "Просмотры",
+      "Проект: Приложение Store",
+      "Развертывание",
+      "Основы активной записи",
+      "Миграции",
+      "Основные проверки",
+      "Основные Ассоциации",
+      "Проект: Micro-Reddit",
+      "Конвейер активов",
+      "Импортные карты",
+      "Турбо привод",
+      "Основы формы",
+      "Проект: Формы",
+      "Файлы cookie сеансов и аутентификация",
+      "Проект: Только для членов!",
+      "Активные Запросы На Запись",
+      "Активные ассоциации записей",
+      "Проект: Частные мероприятия",
+      "Активная запись обратных вызовов",
+      "Расширенные формы",
+      "Проект: Flight Booker",
+      "API и создание собственных",
+      "Работа с внешними API",
+      "Проект: API для котят",
+      "Проект: Pexels API",
+      "CSS Bundling",
+      "JS Бундлинг",
+      "Турбо",
+      "Стимул",
+      "Почтовые отправители",
+      "Проект: Отправка электронных писем с подтверждением",
+      "Расширенные темы",
+      "Websockets и Actioncable",
+      "Проект: Книга Одина"
+    ]
+  }
+];
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+const K = {
+  STATE: 'tr3_state', LESSONS: 'tr3_lessons', MEASURES: 'tr3_measures',
+  GOALS: 'tr3_goals', LASTDAY: 'tr3_lastday', ENGLISH: 'tr3_eng',
+  AIRLERN: 'tr3_airlern', ANKI: 'tr3_anki'
+};
+
+let state = load(K.STATE, {});
+let lessonsDone = load(K.LESSONS, {});
+let measures = load(K.MEASURES, []);
+let goals = load(K.GOALS, { lessons: 1, anki: 20 });
+let englishDone = load(K.ENGLISH, {});
+let airlernToday = load(K.AIRLERN, {});
+let ankiToday = load(K.ANKI, {});
+
+const todayKey = getLocalDateKey();
+const lastDay = load(K.LASTDAY, '');
+if (lastDay !== todayKey) {
+  state = {}; englishDone = {}; airlernToday = {}; ankiToday = {};
+  save(K.STATE, state); save(K.ENGLISH, englishDone);
+  save(K.AIRLERN, airlernToday); save(K.ANKI, ankiToday);
+  save(K.LASTDAY, todayKey);
+}
+
+document.getElementById('goalLessons').value = goals.lessons;
+document.getElementById('goalAnki').value = goals.anki;
+document.getElementById('workAnchor').value = workConfig.anchorDate;
+document.getElementById('workDays').value = workConfig.workDays;
+document.getElementById('offDays').value = workConfig.offDays;
+document.getElementById('workStart').value = workConfig.workStart;
+document.getElementById('workEnd').value = workConfig.workEnd;
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function vibrate(ms = 40) { if (navigator.vibrate) navigator.vibrate(ms); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+function spawnConfetti(n = 12) {
+  const colors = ['#5b8def', '#8b5cf6', '#00d4aa', '#ffb84d', '#ff5c7c'];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + '%';
+    c.style.top = '-20px';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    c.style.animationDelay = Math.random() * 0.3 + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 2500);
+  }
+}
+
+function getNextLesson() {
+  for (const course of COURSES) {
+    for (let i = 0; i < course.lessons.length; i++) {
+      const key = course.id + '_' + i;
+      if (!lessonsDone[key]) {
+        return { course: course.title, lesson: course.lessons[i], key };
+      }
+    }
+  }
+  return null;
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (page === 'lessons') renderCourses();
+  if (page === 'english') renderEnglish();
+  if (page === 'profile') { renderMeasures(); drawCharts(); renderWeekPreview(); }
+  if (page === 'home') renderSchedule();
+}
+
+/* ============================================================
+   DATE + QUOTE
+   ============================================================ */
+const now = getLocalDate();
+const dayNames = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+const monthNames = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+document.getElementById('dateDisplay').textContent =
+  dayNames[now.getDay()] + ', ' + now.getDate() + ' ' + monthNames[now.getMonth()];
+
+const qi = now.getDate() % QUOTES.length;
+document.getElementById('quoteText').textContent = QUOTES[qi].t;
+document.getElementById('quoteAuthor').textContent = '— ' + QUOTES[qi].a;
+
+/* ============================================================
+   CLOCK (Челябинск)
+   ============================================================ */
+function updateClock() {
+  try {
+    const timeStr = new Date().toLocaleTimeString('ru-RU', {
+      timeZone: TZ,
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    });
+    document.getElementById('clockTime').textContent = timeStr;
+  } catch (e) {
+    const d = new Date(Date.now() + 5 * 3600000);
+    document.getElementById('clockTime').textContent = d.toISOString().slice(11,19);
+  }
+  const dt = document.getElementById('dayType');
+  if (dt) dt.textContent = isWorkDay() ? 'Работа' : 'Отдых';
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+/* ============================================================
+   365 TIMER
+   ============================================================ */
+function updateTimer() {
+  const nowLocal = getLocalDate();
+  const deadline = new Date(DEADLINE_DATE + 'T23:59:59');
+  const start = new Date(START_DATE + 'T00:00:00');
+  const diff = deadline - nowLocal;
+  const daysLeft = Math.max(0, Math.ceil(diff / 86400000));
+  document.getElementById('timerDays').innerHTML = daysLeft + '<small>дней</small>';
+  const sub = document.getElementById('timerSub');
+  const dd = deadline.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  sub.textContent = 'до ' + dd;
+  const total = deadline - start;
+  const passed = nowLocal - start;
+  const pct = Math.max(0, Math.min(100, (passed / total) * 100));
+  document.getElementById('timerBar').style.width = pct + '%';
+}
+updateTimer();
+setInterval(updateTimer, 60000);
+
+/* ============================================================
+   DAY BADGE
+   ============================================================ */
+function updateDayBadge() {
+  const isWork = isWorkDay();
+  const badge = document.getElementById('dayBadge');
+  const icon = document.getElementById('dayBadgeIcon');
+  const text = document.getElementById('dayBadgeText');
+  const sub = document.getElementById('dayBadgeSub');
+  badge.className = 'day-badge ' + (isWork ? 'work' : 'off');
+  if (isWork) {
+    icon.textContent = '💼';
+    text.textContent = 'Рабочий день';
+    sub.textContent = workConfig.workStart + '–' + workConfig.workEnd;
+  } else {
+    icon.textContent = '🌴';
+    text.textContent = 'Выходной';
+    sub.textContent = 'Полный день';
+  }
+}
+
+/* ============================================================
+   SCHEDULE
+   ============================================================ */
+function renderSchedule() {
+  const c = document.getElementById('scheduleContainer');
+  c.innerHTML = '';
+  const sched = getTodaySchedule();
+  const isWork = isWorkDay();
+  document.getElementById('scheduleTitle').textContent = isWork ? '📅 Рабочий день' : '📅 Выходной';
+
+  const next = getNextLesson();
+
+  sched.forEach(block => {
+    const done = block.tasks.filter(t => state[t.id]).length;
+    const total = block.tasks.length;
+    const isDone = done === total;
+    const isExpanded = localStorage.getItem('exp3_' + block.time) === '1';
+
+    const div = document.createElement('div');
+    div.className = 'time-block' + (isDone ? ' done' : '') + (isExpanded ? ' expanded' : '') + (block.workBlock ? ' work-block' : '');
+
+    let tasksHTML = '';
+    block.tasks.forEach(t => {
+      let taskText = t.text;
+      if (t.id === 'w10' || t.id === 'o14' || t.id === 'o23') {
+        if (next) {
+          taskText = `Пройти: <span class="lesson-name">${next.lesson}</span>`;
+        } else {
+          taskText = 'Все уроки пройдены 🎉';
+        }
+      }
+      tasksHTML += `
+        <div class="task-item ${state[t.id] ? 'done' : ''}" onclick="toggleTask('${t.id}', event)">
+          <div class="task-check"></div>
+          <div class="task-text">${taskText}${t.sub ? `<small>${t.sub}</small>` : ''}</div>
+        </div>
+      `;
+    });
+
+    div.innerHTML = `
+      <div class="time-header" onclick="toggleBlock('${block.time}')">
+        <div class="time-badge">${block.time}</div>
+        <div class="time-emoji">${block.emoji}</div>
+        <div class="time-title">${block.title}</div>
+        <div class="time-progress ${isDone ? 'done' : ''}">${done}/${total}</div>
+        <div class="time-arrow">▶</div>
+      </div>
+      <div class="time-tasks">${tasksHTML}</div>
+    `;
+    c.appendChild(div);
+  });
+  updateDayProgress();
+}
+
+function toggleBlock(time) {
+  const cur = localStorage.getItem('exp3_' + time) === '1';
+  localStorage.setItem('exp3_' + time, cur ? '0' : '1');
+  renderSchedule();
+}
+
+function toggleTask(id, e) {
+  e.stopPropagation();
+  state[id] = !state[id];
+  save(K.STATE, state);
+  if (state[id]) vibrate(50);
+  renderSchedule();
+  const sched = getTodaySchedule();
+  const total = sched.flatMap(b => b.tasks).length;
+  const done = sched.flatMap(b => b.tasks).filter(t => state[t.id]).length;
+  if (done === total) { spawnConfetti(30); showToast('🎉 Идеальный день!'); }
+}
+
+function updateDayProgress() {
+  const sched = getTodaySchedule();
+  const tasks = sched.flatMap(b => b.tasks);
+  const done = tasks.filter(t => state[t.id]).length;
+  const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+  document.getElementById('dayProgress').textContent = pct + '%';
+}
+
+/* ============================================================
+   COURSES
+   ============================================================ */
+function renderCourses() {
+  const c = document.getElementById('coursesContainer');
+  c.innerHTML = '';
+  let totalAll = 0, doneAll = 0;
+  const nextLesson = getNextLesson();
+
+  COURSES.forEach((course, ci) => {
+    const total = course.lessons.length;
+    const done = course.lessons.filter((_, li) => lessonsDone[course.id + '_' + li]).length;
+    totalAll += total; doneAll += done;
+    const pct = Math.round(done / total * 100);
+    const isExpanded = localStorage.getItem('cexp3_' + course.id) === '1';
+
+    const card = document.createElement('div');
+    card.className = 'course-card' + (isExpanded ? ' expanded' : '');
+    card.innerHTML = `
+      <div class="course-header" onclick="toggleCourse('${course.id}')">
+        <div class="course-num">${ci + 1}</div>
+        <div class="course-info">
+          <div class="course-title">${course.title}</div>
+          <div class="course-sub">${done}/${total} уроков · ${pct}%</div>
+        </div>
+        <div class="course-pct">${pct}%</div>
+      </div>
+      <div class="course-bar"><div class="course-bar-fill" style="width:${pct}%"></div></div>
+      <div class="course-lessons">
+        ${course.lessons.map((l, li) => {
+          const key = course.id + '_' + li;
+          const isCurrent = nextLesson && nextLesson.key === key;
+          return `<div class="lesson-item ${lessonsDone[key] ? 'done' : ''} ${isCurrent ? 'current' : ''}" onclick="toggleLesson('${key}', event)">
+            <div class="lesson-check"></div>
+            <div class="lesson-text">${l}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+    c.appendChild(card);
+  });
+  const pctAll = totalAll ? Math.round(doneAll / totalAll * 100) : 0;
+  document.getElementById('odinProgress').textContent = pctAll + '%';
+}
+
+function toggleCourse(id) {
+  const cur = localStorage.getItem('cexp3_' + id) === '1';
+  localStorage.setItem('cexp3_' + id, cur ? '0' : '1');
+  renderCourses();
+}
+
+function toggleLesson(key, e) {
+  e.stopPropagation();
+  lessonsDone[key] = !lessonsDone[key];
+  save(K.LESSONS, lessonsDone);
+  if (lessonsDone[key]) { vibrate(40); spawnConfetti(6); }
+  renderCourses();
+}
+
+/* ============================================================
+   ENGLISH
+   ============================================================ */
+function renderEnglish() {
+  const c = document.getElementById('englishContainer');
+  c.innerHTML = '';
+  ENGLISH_TASKS.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'task-item' + (englishDone[t.id] ? ' done' : '');
+    el.style.borderRadius = '13px';
+    el.style.background = 'var(--card)';
+    el.style.border = '1px solid var(--border)';
+    el.style.marginBottom = '8px';
+    el.onclick = () => {
+      englishDone[t.id] = !englishDone[t.id];
+      save(K.ENGLISH, englishDone);
+      if (englishDone[t.id]) { vibrate(40); spawnConfetti(6); }
+      renderEnglish();
+      updateEngCount();
+    };
+    el.innerHTML = `
+      <div class="task-check"></div>
+      <div class="task-text">${t.text}${t.sub ? `<small>${t.sub}</small>` : ''}</div>
+    `;
+    c.appendChild(el);
+  });
+  updateEngCount();
+  updateAirlernAnkiUI();
+}
+function updateEngCount() {
+  const done = ENGLISH_TASKS.filter(t => englishDone[t.id]).length;
+  document.getElementById('engToday').textContent = done + '/' + ENGLISH_TASKS.length;
+}
+function changeAirlern(delta) {
+  let v = (airlernToday[todayKey] || 0) + delta;
+  v = Math.max(0, Math.min(5, v));
+  airlernToday[todayKey] = v;
+  save(K.AIRLERN, airlernToday);
+  updateAirlernAnkiUI();
+  if (v >= 5) { englishDone['e1'] = true; save(K.ENGLISH, englishDone); renderEnglish(); }
+  vibrate(30);
+}
+function changeAnki(delta) {
+  let v = (ankiToday[todayKey] || 0) + delta;
+  v = Math.max(0, Math.min(200, v));
+  ankiToday[todayKey] = v;
+  save(K.ANKI, ankiToday);
+  updateAirlernAnkiUI();
+  if (v >= goals.anki) { englishDone['e2'] = true; save(K.ENGLISH, englishDone); renderEnglish(); }
+  vibrate(30);
+}
+function updateAirlernAnkiUI() {
+  document.getElementById('airlernCount').textContent = airlernToday[todayKey] || 0;
+  document.getElementById('ankiCount').textContent = ankiToday[todayKey] || 0;
+}
+
+/* ============================================================
+   MEASURES
+   ============================================================ */
+function addMeasure() {
+  const m = {
+    date: todayKey,
+    chest: parseFloat(document.getElementById('mChest').value) || null,
+    waist: parseFloat(document.getElementById('mWaist').value) || null,
+    hips: parseFloat(document.getElementById('mHips').value) || null,
+    weight: parseFloat(document.getElementById('mWeight').value) || null,
+    bicep: parseFloat(document.getElementById('mBicep').value) || null,
+    shoulders: parseFloat(document.getElementById('mShoulders').value) || null
+  };
+  if (!m.chest && !m.waist && !m.hips && !m.weight && !m.bicep && !m.shoulders) {
+    showToast('Заполни хотя бы одно поле'); return;
+  }
+  measures.push(m);
+  save(K.MEASURES, measures);
+  ['mChest','mWaist','mHips','mWeight','mBicep','mShoulders'].forEach(id => document.getElementById(id).value = '');
+  renderMeasures(); drawCharts();
+  spawnConfetti(15); showToast('📏 Замер добавлен');
+}
+
+function renderMeasures() {
+  const c = document.getElementById('measuresList');
+  c.innerHTML = '';
+  if (!measures.length) {
+    c.innerHTML = '<div class="empty"><span class="empty-icon">📏</span>Пока нет замеров</div>';
+    return;
+  }
+  [...measures].reverse().slice(0, 10).forEach((m, i) => {
+    const idx = measures.length - 1 - i;
+    const el = document.createElement('div');
+    el.className = 'measure-entry';
+    const vals = [];
+    if (m.chest) vals.push(`Грудь <span>${m.chest}</span>`);
+    if (m.waist) vals.push(`Талия <span>${m.waist}</span>`);
+    if (m.hips) vals.push(`Бёдра <span>${m.hips}</span>`);
+    if (m.weight) vals.push(`Вес <span>${m.weight}</span>`);
+    if (m.bicep) vals.push(`Бицепс <span>${m.bicep}</span>`);
+    if (m.shoulders) vals.push(`Плечи <span>${m.shoulders}</span>`);
+    el.innerHTML = `
+      <div>
+        <div class="measure-date">${m.date}</div>
+        <div class="measure-vals">${vals.join(' · ')}</div>
+      </div>
+      <button class="del-btn" onclick="deleteMeasure(${idx})">✕</button>
+    `;
+    c.appendChild(el);
+  });
+}
+
+function deleteMeasure(i) {
+  if (!confirm('Удалить замер?')) return;
+  measures.splice(i, 1);
+  save(K.MEASURES, measures);
+  renderMeasures(); drawCharts();
+}
+
+/* ============================================================
+   CHARTS
+   ============================================================ */
+function drawCharts() {
+  drawLine('chartWeight', measures.filter(m => m.weight), 'weight', '#5b8def');
+  drawMulti('chartTW', measures.filter(m => m.waist || m.hips));
+}
+
+function drawLine(canvasId, data, key, color) {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  if (data.length < 2) {
+    ctx.fillStyle = '#7d87a3'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Нужно минимум 2 замера', W/2, H/2);
+    return;
+  }
+  const pad = { l: 40, r: 20, t: 20, b: 30 };
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+  const vals = data.map(d => d[key]);
+  const mn = Math.min(...vals) - 1, mx = Math.max(...vals) + 1;
+  const range = mx - mn || 1;
+  ctx.strokeStyle = '#232b42'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (ch / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    ctx.fillStyle = '#7d87a3'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText((mx - (range / 4) * i).toFixed(1), pad.l - 6, y + 3);
+  }
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = pad.l + (cw / (data.length - 1)) * i;
+    const y = pad.t + ch - ((d[key] - mn) / range) * ch;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.fillStyle = color;
+  data.forEach((d, i) => {
+    const x = pad.l + (cw / (data.length - 1)) * i;
+    const y = pad.t + ch - ((d[key] - mn) / range) * ch;
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+  });
+}
+
+function drawMulti(canvasId, data) {
+  const cv = document.getElementById(canvasId);
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  if (data.length < 2) {
+    ctx.fillStyle = '#7d87a3'; ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Нужно минимум 2 замера', W/2, H/2);
+    return;
+  }
+  const pad = { l: 40, r: 20, t: 20, b: 30 };
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+  const all = [];
+  data.forEach(d => { if (d.waist) all.push(d.waist); if (d.hips) all.push(d.hips); });
+  const mn = Math.min(...all) - 2, mx = Math.max(...all) + 2;
+  const range = mx - mn || 1;
+  ctx.strokeStyle = '#232b42'; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (ch / 4) * i;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+  }
+  const drawSeries = (key, color) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.beginPath();
+    let started = false;
+    data.forEach((d, i) => {
+      if (!d[key]) return;
+      const x = pad.l + (cw / (data.length - 1)) * i;
+      const y = pad.t + ch - ((d[key] - mn) / range) * ch;
+      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.fillStyle = color;
+    data.forEach((d, i) => {
+      if (!d[key]) return;
+      const x = pad.l + (cw / (data.length - 1)) * i;
+      const y = pad.t + ch - ((d[key] - mn) / range) * ch;
+      ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
+    });
+  };
+  drawSeries('waist', '#ffb84d');
+  drawSeries('hips', '#8b5cf6');
+  ctx.font = '11px sans-serif'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#ffb84d'; ctx.fillRect(pad.l, 4, 10, 10);
+  ctx.fillStyle = '#eef2fa'; ctx.fillText('Талия', pad.l + 14, 13);
+  ctx.fillStyle = '#8b5cf6'; ctx.fillRect(pad.l + 70, 4, 10, 10);
+  ctx.fillStyle = '#eef2fa'; ctx.fillText('Бёдра', pad.l + 84, 13);
+}
+
+/* ============================================================
+   WORK CONFIG
+   ============================================================ */
+function saveWorkConfig() {
+  workConfig = {
+    anchorDate: document.getElementById('workAnchor').value,
+    workDays: parseInt(document.getElementById('workDays').value) || 2,
+    offDays: parseInt(document.getElementById('offDays').value) || 2,
+    workStart: document.getElementById('workStart').value,
+    workEnd: document.getElementById('workEnd').value
+  };
+  save(K_WORK, workConfig);
+  showToast('✅ График сохранён');
+  updateDayBadge();
+  renderSchedule();
+  renderWeekPreview();
+  updateClock();
+}
+
+function renderWeekPreview() {
+  const c = document.getElementById('weekPreview');
+  c.innerHTML = '';
+  const today = getLocalDate();
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const isWork = isWorkDay(d);
+    const isToday = getLocalDateKey(d) === todayKey;
+    const el = document.createElement('div');
+    el.className = 'week-day ' + (isWork ? 'work' : 'off') + (isToday ? ' today' : '');
+    const dayName = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()];
+    el.innerHTML = `${dayName}<small>${d.getDate()}</small>`;
+    c.appendChild(el);
+  }
+}
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+function saveGoals() {
+  goals = {
+    lessons: parseInt(document.getElementById('goalLessons').value) || 1,
+    anki: parseInt(document.getElementById('goalAnki').value) || 20
+  };
+  save(K.GOALS, goals);
+  showToast('✅ Цели сохранены');
+}
+
+function exportData() {
+  const data = { state, lessonsDone, measures, goals, englishDone, airlernToday, ankiToday, workConfig };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'tracker-' + todayKey + '.json'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 Экспорт готов');
+}
+
+function importData(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (d.state) { state = d.state; save(K.STATE, state); }
+      if (d.lessonsDone) { lessonsDone = d.lessonsDone; save(K.LESSONS, lessonsDone); }
+      if (d.measures) { measures = d.measures; save(K.MEASURES, measures); }
+      if (d.goals) { goals = d.goals; save(K.GOALS, goals); }
+      if (d.englishDone) { englishDone = d.englishDone; save(K.ENGLISH, englishDone); }
+      if (d.airlernToday) { airlernToday = d.airlernToday; save(K.AIRLERN, airlernToday); }
+      if (d.ankiToday) { ankiToday = d.ankiToday; save(K.ANKI, ankiToday); }
+      if (d.workConfig) { workConfig = d.workConfig; save(K_WORK, workConfig); }
+      showToast('✅ Импорт готов');
+      setTimeout(() => location.reload(), 1000);
+    } catch (err) { showToast('❌ Ошибка'); }
+  };
+  r.readAsText(f);
+}
+
+function resetToday() {
+  if (!confirm('Сбросить галочки за сегодня?')) return;
+  state = {}; englishDone = {}; airlernToday[todayKey] = 0; ankiToday[todayKey] = 0;
+  save(K.STATE, state); save(K.ENGLISH, englishDone);
+  save(K.AIRLERN, airlernToday); save(K.ANKI, ankiToday);
+  renderSchedule(); renderEnglish();
+  showToast('🔄 Сброшено');
+}
+
+function resetAll() {
+  if (!confirm('Удалить ВСЁ? Это необратимо!')) return;
+  if (!confirm('Точно? Прогресс курсов тоже удалится!')) return;
+  Object.values(K).forEach(k => localStorage.removeItem(k));
+  localStorage.removeItem(K_WORK);
+  location.reload();
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+updateDayBadge();
+renderSchedule();
+renderEnglish();
+renderWeekPreview();
+
+setInterval(renderSchedule, 60000);
+setInterval(updateDayBadge, 60000);
+</script>
+</body>
+</html>
